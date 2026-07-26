@@ -117,6 +117,22 @@
         .admin-panel button:hover {
             opacity: 0.9;
         }
+
+        /* Confetti */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: red;
+            top: -10px;
+            animation: fall 2s linear forwards;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
     </style>
 </head>
 <body>
@@ -160,9 +176,12 @@
     </div>
 
     <script>
-        let totalBooks = 0;
-        let donors = {};
-        let years = {};
+        let totalBooks = Number(localStorage.getItem("totalBooks")) || 0;
+        let donors = JSON.parse(localStorage.getItem("donors") || "{}");
+        let years = JSON.parse(localStorage.getItem("years") || "{}");
+
+        document.getElementById("totalCount").innerText = totalBooks;
+        updateLeaderboards();
 
         function teamLogin() {
             const pwd = prompt("Enter password:");
@@ -176,11 +195,15 @@
 
         function adjustTotal(amount) {
             totalBooks = Math.max(0, totalBooks + amount);
+            localStorage.setItem("totalBooks", totalBooks);
+
             const counter = document.getElementById('totalCount');
             counter.innerText = totalBooks;
 
             counter.classList.add("bump");
             setTimeout(() => counter.classList.remove("bump"), 200);
+
+            if (amount > 0) launchConfetti();
         }
 
         function addDonationRecord() {
@@ -194,6 +217,9 @@
 
             donors[name] = (donors[name] || 0) + 1;
             years[year] = (years[year] || 0) + 1;
+
+            localStorage.setItem("donors", JSON.stringify(donors));
+            localStorage.setItem("years", JSON.stringify(years));
 
             adjustTotal(1);
             updateLeaderboards();
@@ -222,13 +248,24 @@
         }
 
         function changeBgColor() {
-            document.documentElement.style.setProperty('--bg-color',
-                document.getElementById('bgColorPicker').value);
+            const color = document.getElementById('bgColorPicker').value;
+            document.documentElement.style.setProperty('--bg-color', color);
         }
 
         function changeTextColor() {
-            document.documentElement.style.setProperty('--text-color',
-                document.getElementById('textColorPicker').value);
+            const color = document.getElementById('textColorPicker').value;
+            document.documentElement.style.setProperty('--text-color', color);
+        }
+
+        function launchConfetti() {
+            for (let i = 0; i < 20; i++) {
+                const confetti = document.createElement("div");
+                confetti.classList.add("confetti");
+                confetti.style.left = Math.random() * window.innerWidth + "px";
+                confetti.style.backgroundColor = `hsl(${Math.random()*360}, 100%, 50%)`;
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 2000);
+            }
         }
     </script>
 </body>
