@@ -6,10 +6,9 @@
     <style>
         :root {
             --bg-color: #f4f4f9;
-            --text-color: #333333;
-            --card-bg: #ffffff;
+            --text-color: #333;
+            --card-bg: #fff;
             --accent-color: #0066cc;
-            --accent-glow: rgba(0, 102, 204, 0.2);
         }
 
         body {
@@ -32,84 +31,61 @@
             cursor: pointer;
             font-size: 14px;
             font-weight: bold;
+            transition: transform 0.2s;
+        }
+        .login-corner:hover {
+            transform: scale(1.05);
         }
 
         .main-container {
             max-width: 900px;
-            margin: 50px auto;
+            margin: 60px auto;
             text-align: center;
         }
 
-        /* Bold & Interesting Typography for the Main Titles */
         h1 {
-            font-size: 3.5rem;
-            font-weight: 900;
-            letter-spacing: -1.5px;
-            text-transform: uppercase;
-            margin-bottom: 5px;
-            text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.05);
+            font-size: 3rem;
+            margin-bottom: 10px;
         }
 
-        /* Transformed Counter Box */
         .counter-box {
-            font-size: 8rem;
-            font-weight: 900;
-            line-height: 1;
+            font-size: 6rem;
+            font-weight: bold;
             color: var(--accent-color);
-            margin: 10px 0 30px 0;
-            letter-spacing: -2px;
-            text-shadow: 3px 3px 0px rgba(0, 0, 0, 0.05),
-                         0px 0px 30px var(--accent-glow);
-            animation: pulse 2s infinite ease-in-out;
+            margin: 20px 0;
+            transition: transform 0.2s;
         }
 
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-            100% { transform: scale(1); }
+        .counter-box.bump {
+            transform: scale(1.15);
         }
 
         .leaderboards {
             display: flex;
-            justify-content: space-around;
+            flex-wrap: wrap;
+            justify-content: center;
             gap: 20px;
             margin-top: 40px;
         }
 
-        /* Bold Style Updates to Leaderboards */
         .board {
             background: var(--card-bg);
-            padding: 25px;
-            border-radius: 12px;
+            padding: 20px;
+            border-radius: 8px;
             width: 40%;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            min-width: 280px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             text-align: left;
         }
 
         .board h3 {
             margin-top: 0;
-            font-size: 1.3rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: -0.5px;
-            border-bottom: 3px solid var(--accent-color);
-            padding-bottom: 10px;
-            margin-bottom: 15px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 8px;
         }
 
         .board ul {
-            padding-left: 0;
-            list-style: none;
-        }
-
-        .board li {
-            font-size: 1.1rem;
-            font-weight: bold;
-            padding: 8px 12px;
-            margin-bottom: 6px;
-            background: rgba(0, 0, 0, 0.02);
-            border-left: 4px solid var(--accent-color);
-            border-radius: 0 6px 6px 0;
+            padding-left: 20px;
         }
 
         .admin-panel {
@@ -122,10 +98,10 @@
             text-align: left;
         }
 
-        .admin-panel input, .admin-panel select {
+        .admin-panel input {
             padding: 8px;
-            margin: 5px;
-            font-size: 14px;
+            margin: 5px 0;
+            width: 200px;
         }
 
         .admin-panel button {
@@ -135,12 +111,17 @@
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .admin-panel button:hover {
+            opacity: 0.9;
         }
     </style>
 </head>
 <body>
 
-    <div class="login-corner" onclick="teamLogin()">Part of the team? Log in now.</div>
+    <div class="login-corner" onclick="teamLogin()">Team Login</div>
 
     <div class="main-container">
         <h1>Total Books Donated</h1>
@@ -159,19 +140,22 @@
 
         <div class="admin-panel" id="adminPanel">
             <h3>Team Management Tools</h3>
-            <div>
-                <button onclick="adjustTotal(1)">+ Add Book</button>
-                <button onclick="adjustTotal(-1)">- Subtract Book</button>
-            </div>
-            <hr style="margin: 15px 0;">
+
+            <button onclick="adjustTotal(1)">+ Add Book</button>
+            <button onclick="adjustTotal(-1)">- Subtract Book</button>
+
+            <hr>
+
             <h4>Log New Book Donation</h4>
             <input type="text" id="donorName" placeholder="Donor Name">
             <input type="text" id="donorYear" placeholder="Year (e.g. Year 10)">
             <button onclick="addDonationRecord()">Submit Record</button>
-            <hr style="margin: 15px 0;">
+
+            <hr>
+
             <h4>Customize Style</h4>
-            <label>Background Color: <input type="color" id="bgColorPicker" onchange="changeBgColor()"></label>
-            <label>Text Color: <input type="color" id="textColorPicker" onchange="changeTextColor()"></label>
+            <label>Background: <input type="color" id="bgColorPicker" onchange="changeBgColor()"></label>
+            <label>Text: <input type="color" id="textColorPicker" onchange="changeTextColor()"></label>
         </div>
     </div>
 
@@ -181,10 +165,10 @@
         let years = {};
 
         function teamLogin() {
-            let pwd = prompt("Enter password:");
+            const pwd = prompt("Enter password:");
             if (pwd === "8542") {
                 document.getElementById('adminPanel').style.display = 'block';
-                alert("Logged in successfully!");
+                alert("Logged in!");
             } else if (pwd !== null) {
                 alert("Incorrect password.");
             }
@@ -192,12 +176,16 @@
 
         function adjustTotal(amount) {
             totalBooks = Math.max(0, totalBooks + amount);
-            document.getElementById('totalCount').innerText = totalBooks;
+            const counter = document.getElementById('totalCount');
+            counter.innerText = totalBooks;
+
+            counter.classList.add("bump");
+            setTimeout(() => counter.classList.remove("bump"), 200);
         }
 
         function addDonationRecord() {
-            let name = document.getElementById('donorName').value.trim();
-            let year = document.getElementById('donorYear').value.trim();
+            const name = document.getElementById('donorName').value.trim();
+            const year = document.getElementById('donorYear').value.trim();
 
             if (!name || !year) {
                 alert("Please enter both name and year.");
@@ -215,44 +203,32 @@
         }
 
         function updateLeaderboards() {
-            let donorUl = document.getElementById('donorList');
-            let yearUl = document.getElementById('yearList');
+            const donorUl = document.getElementById('donorList');
+            const yearUl = document.getElementById('yearList');
 
             donorUl.innerHTML = '';
             yearUl.innerHTML = '';
 
-            let sortedDonors = Object.entries(donors).sort((a, b) => b[1] - a[1]);
-            let sortedYears = Object.entries(years).sort((a, b) => b[1] - a[1]);
+            const sortedDonors = Object.entries(donors).sort((a, b) => b[1] - a[1]);
+            const sortedYears = Object.entries(years).sort((a, b) => b[1] - a[1]);
 
-            if (sortedDonors.length === 0) {
-                donorUl.innerHTML = '<li>No donations yet</li>';
-            } else {
-                sortedDonors.forEach(([name, count]) => {
-                    let li = document.createElement('li');
-                    li.innerText = `${name}: ${count} books`;
-                    donorUl.appendChild(li);
-                });
-            }
+            donorUl.innerHTML = sortedDonors.length
+                ? sortedDonors.map(([n, c]) => `<li>${n}: ${c} books</li>`).join('')
+                : '<li>No donations yet</li>';
 
-            if (sortedYears.length === 0) {
-                yearUl.innerHTML = '<li>No donations yet</li>';
-            } else {
-                sortedYears.forEach(([yr, count]) => {
-                    let li = document.createElement('li');
-                    li.innerText = `${yr}: ${count} books`;
-                    yearUl.appendChild(li);
-                });
-            }
+            yearUl.innerHTML = sortedYears.length
+                ? sortedYears.map(([y, c]) => `<li>${y}: ${c} books</li>`).join('')
+                : '<li>No donations yet</li>';
         }
 
         function changeBgColor() {
-            let color = document.getElementById('bgColorPicker').value;
-            document.documentElement.style.setProperty('--bg-color', color);
+            document.documentElement.style.setProperty('--bg-color',
+                document.getElementById('bgColorPicker').value);
         }
 
         function changeTextColor() {
-            let color = document.getElementById('textColorPicker').value;
-            document.documentElement.style.setProperty('--text-color', color);
+            document.documentElement.style.setProperty('--text-color',
+                document.getElementById('textColorPicker').value);
         }
     </script>
 </body>
