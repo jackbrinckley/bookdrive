@@ -4,13 +4,9 @@
 <meta charset="UTF-8">
 <title>Book Drive</title>
 
-<!-- Chart.js for Pie Chart -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <style>
     :root {
         --bg-gradient: linear-gradient(135deg, #ff7aa2, #b5688f);
-        --bg-solid: none;
         --card-bg: rgba(255, 255, 255, 0.25);
         --text-color: #ffffff;
         --accent: #ff3b5c;
@@ -20,7 +16,7 @@
     body {
         margin: 0;
         font-family: Arial, sans-serif;
-        background: var(--bg-solid, var(--bg-gradient));
+        background: var(--bg-gradient);
         color: var(--text-color);
         backdrop-filter: blur(var(--blur));
         padding: 40px 20px;
@@ -72,13 +68,26 @@
         margin: 20px 0;
     }
 
+    .dots {
+        margin-top: 10px;
+    }
+
+    .dot {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin: 0 4px;
+    }
+
     .login-btn {
-        margin-top: 40px;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
         background: rgba(255,255,255,0.25);
         padding: 10px 20px;
         border-radius: 10px;
         cursor: pointer;
-        display: inline-block;
         font-weight: bold;
         transition: 0.2s;
     }
@@ -135,16 +144,31 @@
         margin-right: auto;
     }
 
+    #adminPanel h3 {
+        margin-top: 0;
+        font-size: 1.6rem;
+    }
+
     .section {
         margin-bottom: 25px;
         padding-bottom: 20px;
         border-bottom: 2px solid rgba(255,255,255,0.3);
     }
 
-    .section input {
+    .section input, .section select {
         padding: 8px;
         margin: 5px 0;
         width: 200px;
+    }
+
+    .section button {
+        padding: 8px 15px;
+        background: var(--accent);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-top: 10px;
     }
 
     .quick-buttons button {
@@ -175,33 +199,36 @@
 </head>
 <body>
 
-<h1>BOOK DRIVE</h1>
-<div class="subtitle">Every book counts. Watch our goal become reality!</div>
+<!-- LOGGED OUT SCREEN -->
+<div id="publicScreen">
+    <h1>BOOK DRIVE</h1>
+    <div class="subtitle">Every book counts. Watch our goal become reality!</div>
 
-<div class="grid">
-    <div class="panel">
-        <h2>TOP DONORS</h2>
-        <div id="donorList">No donations yet. Be the first!</div>
+    <div class="grid">
+        <div class="panel">
+            <h2>TOP DONORS</h2>
+            <div id="donorList">No donations yet. Be the first!</div>
+        </div>
+
+        <div class="panel">
+            <h2>TOTAL BOOKS DONATED</h2>
+            <div class="big-number" id="totalCount">0</div>
+
+            <div class="dots">
+                <span class="dot" style="background:#ff3b5c;"></span>
+                <span class="dot" style="background:#ffd54f;"></span>
+                <span class="dot" style="background:#ff7aa2;"></span>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>TOP YEAR GROUPS</h2>
+            <div id="yearList">No donations yet. Be the first!</div>
+        </div>
     </div>
 
-    <div class="panel">
-        <h2>TOTAL BOOKS DONATED</h2>
-        <div class="big-number" id="totalCount">0</div>
-    </div>
-
-    <div class="panel">
-        <h2>TOP YEAR GROUPS</h2>
-        <div id="yearList">No donations yet. Be the first!</div>
-    </div>
+    <div class="login-btn" id="loginButton" onclick="openModal()">Part of the team? Log in.</div>
 </div>
-
-<!-- PIE CHART ALWAYS VISIBLE -->
-<div style="margin-top:40px;">
-    <h2 style="margin-bottom:10px;">Year Group Donations</h2>
-    <canvas id="yearChart" width="400" height="400"></canvas>
-</div>
-
-<div class="login-btn" onclick="openModal()">Part of the team? Log in.</div>
 
 <!-- LOGIN MODAL -->
 <div class="modal-bg" id="modalBg">
@@ -214,7 +241,7 @@
     </div>
 </div>
 
-<!-- ADMIN PANEL -->
+<!-- LOGGED IN SCREEN -->
 <div id="adminPanel">
     <h3>Admin Controls</h3>
 
@@ -244,11 +271,11 @@
     </div>
 
     <div class="section">
-        <h4>Custom Background Color</h4>
-        <input type="color" id="bgColorPicker" value="#ff7aa2" onchange="changeBackground()">
+        <h4>Appearance</h4>
+        <label>Custom Background Color:</label>
+        <input type="color" id="bgColorPicker" value="#b5658f" onchange="changeBackground()">
         <button onclick="resetBackground()">Reset</button>
     </div>
-
 </div>
 
 <script>
@@ -256,7 +283,6 @@
     let donors = {};
     let years = {};
     let recent = [];
-    let chart;
 
     function openModal() {
         modalBg.style.display = "flex";
@@ -268,7 +294,9 @@
 
     function unlock() {
         if (passwordInput.value === "8542") {
+            publicScreen.style.display = "none";
             adminPanel.style.display = "block";
+            loginButton.style.display = "none";
             closeModal();
             alert("Logged in successfully");
         } else {
@@ -298,7 +326,6 @@
 
         adjustTotal(count);
         updateLists();
-        updatePieChart();
     }
 
     function updateLists() {
@@ -315,62 +342,12 @@
             : "No donations yet.";
     }
 
-    function updatePieChart() {
-        const ctx = document.getElementById('yearChart').getContext('2d');
-
-        const labels = ["Year 7", "Year 8", "Year 9", "Year 10", "Year 11", "Year 12"];
-        const data = [
-            years["Year 7"] || 0,
-            years["Year 8"] || 0,
-            years["Year 9"] || 0,
-            years["Year 10"] || 0,
-            years["Year 11"] || 0,
-            years["Year 12"] || 0
-        ];
-
-        if (chart) chart.destroy();
-
-        chart = new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels,
-                datasets: [{
-                    data,
-                    backgroundColor: [
-                        "#ff6384",
-                        "#36a2eb",
-                        "#ffcd56",
-                        "#4bc0c0",
-                        "#9966ff",
-                        "#ff9f40"
-                    ],
-                    borderColor: "#ffffff",
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: "white",
-                            font: { size: 14 }
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    updatePieChart(); // show chart even when logged out
-
     function changeBackground() {
         const color = bgColorPicker.value;
-        document.documentElement.style.setProperty("--bg-solid", color);
-        document.documentElement.style.setProperty("--bg-gradient", "none");
+        document.documentElement.style.setProperty("--bg-gradient", color);
     }
 
     function resetBackground() {
-        document.documentElement.style.setProperty("--bg-solid", "none");
         document.documentElement.style.setProperty("--bg-gradient", "linear-gradient(135deg, #ff7aa2, #b5688f)");
     }
 
