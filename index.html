@@ -54,6 +54,11 @@
         text-align: center;
     }
 
+    /* Taller middle panel */
+    #middlePanel {
+        height: 260px;
+    }
+
     .panel h2 {
         margin-top: 0;
         font-size: 1.4rem;
@@ -134,7 +139,7 @@
     /* ADMIN PANEL */
     #adminPanel {
         display: none;
-        margin-top: 40px;
+        margin-top: 60px;
         background: rgba(255,255,255,0.25);
         padding: 25px;
         border-radius: 16px;
@@ -199,7 +204,7 @@
 </head>
 <body>
 
-<!-- LOGGED OUT SCREEN -->
+<!-- PUBLIC SCREEN (always visible) -->
 <div id="publicScreen">
     <h1>BOOK DRIVE</h1>
     <div class="subtitle">Every book counts. Watch our goal become reality!</div>
@@ -210,7 +215,7 @@
             <div id="donorList">No donations yet. Be the first!</div>
         </div>
 
-        <div class="panel">
+        <div class="panel" id="middlePanel">
             <h2>TOTAL BOOKS DONATED</h2>
             <div class="big-number" id="totalCount">0</div>
 
@@ -241,7 +246,7 @@
     </div>
 </div>
 
-<!-- LOGGED IN SCREEN -->
+<!-- ADMIN PANEL (appears BELOW public screen) -->
 <div id="adminPanel">
     <h3>Admin Controls</h3>
 
@@ -273,28 +278,27 @@
     <div class="section">
         <h4>Appearance</h4>
         <label>Custom Background Color:</label>
-        <input type="color" id="bgColorPicker" value="#b5658f" onchange="changeBackground()">
+        <input type="color" id="bgColorPicker" onchange="changeBackground()">
         <button onclick="resetBackground()">Reset</button>
     </div>
 </div>
 
 <script>
-    let totalBooks = 0;
-    let donors = {};
-    let years = {};
-    let recent = [];
+    /* Load saved data */
+    let totalBooks = Number(localStorage.getItem("totalBooks")) || 0;
+    let donors = JSON.parse(localStorage.getItem("donors") || "{}");
+    let years = JSON.parse(localStorage.getItem("years") || "{}");
+    let recent = JSON.parse(localStorage.getItem("recent") || "[]");
 
-    function openModal() {
-        modalBg.style.display = "flex";
-    }
+    totalCount.innerText = totalBooks;
+    updateLists();
 
-    function closeModal() {
-        modalBg.style.display = "none";
-    }
+    /* Modal */
+    function openModal() { modalBg.style.display = "flex"; }
+    function closeModal() { modalBg.style.display = "none"; }
 
     function unlock() {
         if (passwordInput.value === "8542") {
-            publicScreen.style.display = "none";
             adminPanel.style.display = "block";
             loginButton.style.display = "none";
             closeModal();
@@ -304,12 +308,15 @@
         }
     }
 
+    /* Adjust total */
     function adjustTotal(n) {
         totalBooks = Math.max(0, totalBooks + n);
         totalCount.innerText = totalBooks;
+        localStorage.setItem("totalBooks", totalBooks);
         launchConfetti();
     }
 
+    /* Add donation */
     function addDonation() {
         const name = donorName.value.trim();
         const year = donorYear.value.trim();
@@ -324,10 +331,15 @@
         years[year] = (years[year] || 0) + count;
         recent.unshift(`${name} donated ${count} book(s)`);
 
+        localStorage.setItem("donors", JSON.stringify(donors));
+        localStorage.setItem("years", JSON.stringify(years));
+        localStorage.setItem("recent", JSON.stringify(recent));
+
         adjustTotal(count);
         updateLists();
     }
 
+    /* Update lists */
     function updateLists() {
         donorList.innerHTML = Object.keys(donors).length
             ? Object.entries(donors).map(([n,c]) => `${n}: ${c}`).join("<br>")
@@ -342,15 +354,27 @@
             : "No donations yet.";
     }
 
+    /* Background changer */
     function changeBackground() {
         const color = bgColorPicker.value;
         document.documentElement.style.setProperty("--bg-gradient", color);
+        localStorage.setItem("bgColor", color);
     }
 
     function resetBackground() {
-        document.documentElement.style.setProperty("--bg-gradient", "linear-gradient(135deg, #ff7aa2, #b5688f)");
+        const defaultGradient = "linear-gradient(135deg, #ff7aa2, #b5688f)";
+        document.documentElement.style.setProperty("--bg-gradient", defaultGradient);
+        localStorage.setItem("bgColor", defaultGradient);
     }
 
+    /* Load saved background */
+    const savedBg = localStorage.getItem("bgColor");
+    if (savedBg) {
+        document.documentElement.style.setProperty("--bg-gradient", savedBg);
+        bgColorPicker.value = savedBg;
+    }
+
+    /* Confetti */
     function launchConfetti() {
         for (let i = 0; i < 25; i++) {
             const conf = document.createElement("div");
