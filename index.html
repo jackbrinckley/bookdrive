@@ -10,6 +10,7 @@
 <style>
     :root {
         --bg-gradient: linear-gradient(135deg, #ff7aa2, #b5688f);
+        --bg-solid: none;
         --card-bg: rgba(255, 255, 255, 0.25);
         --text-color: #ffffff;
         --accent: #ff3b5c;
@@ -19,11 +20,12 @@
     body {
         margin: 0;
         font-family: Arial, sans-serif;
-        background: var(--bg-gradient);
+        background: var(--bg-solid, var(--bg-gradient));
         color: var(--text-color);
         backdrop-filter: blur(var(--blur));
         padding: 40px 20px;
         text-align: center;
+        min-height: 100vh;
     }
 
     h1 {
@@ -103,15 +105,10 @@
         text-align: left;
     }
 
-    .modal h3 {
-        margin-top: 0;
-    }
-
     .modal input {
         width: 100%;
         padding: 10px;
         margin: 15px 0;
-        font-size: 1rem;
     }
 
     .modal button {
@@ -122,13 +119,8 @@
         font-weight: bold;
     }
 
-    .cancel {
-        background: #ccc;
-    }
-    .unlock {
-        background: #ff3b5c;
-        color: white;
-    }
+    .cancel { background: #ccc; }
+    .unlock { background: #ff3b5c; color: white; }
 
     /* ADMIN PANEL */
     #adminPanel {
@@ -143,38 +135,26 @@
         margin-right: auto;
     }
 
-    #adminPanel h3 {
-        margin-top: 0;
-        font-size: 1.6rem;
-    }
-
     .section {
         margin-bottom: 25px;
         padding-bottom: 20px;
         border-bottom: 2px solid rgba(255,255,255,0.3);
     }
 
-    .section input, .section select {
+    .section input {
         padding: 8px;
         margin: 5px 0;
         width: 200px;
     }
 
-    .section button {
-        padding: 8px 15px;
-        background: var(--accent);
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        margin-top: 10px;
-    }
-
     .quick-buttons button {
         margin: 5px;
+        padding: 8px 15px;
         background: rgba(255,255,255,0.25);
         color: white;
         border: 1px solid rgba(255,255,255,0.4);
+        border-radius: 6px;
+        cursor: pointer;
     }
 
     /* CONFETTI */
@@ -189,9 +169,7 @@
     }
 
     @keyframes fall {
-        to {
-            transform: translateY(100vh) rotate(360deg);
-        }
+        to { transform: translateY(100vh) rotate(360deg); }
     }
 </style>
 </head>
@@ -215,6 +193,12 @@
         <h2>TOP YEAR GROUPS</h2>
         <div id="yearList">No donations yet. Be the first!</div>
     </div>
+</div>
+
+<!-- PIE CHART ALWAYS VISIBLE -->
+<div style="margin-top:40px;">
+    <h2 style="margin-bottom:10px;">Year Group Donations</h2>
+    <canvas id="yearChart" width="400" height="400"></canvas>
 </div>
 
 <div class="login-btn" onclick="openModal()">Part of the team? Log in.</div>
@@ -260,8 +244,9 @@
     </div>
 
     <div class="section">
-        <h4>Year Group Pie Chart</h4>
-        <canvas id="yearChart" width="400" height="400"></canvas>
+        <h4>Custom Background Color</h4>
+        <input type="color" id="bgColorPicker" value="#ff7aa2" onchange="changeBackground()">
+        <button onclick="resetBackground()">Reset</button>
     </div>
 
 </div>
@@ -274,20 +259,18 @@
     let chart;
 
     function openModal() {
-        document.getElementById("modalBg").style.display = "flex";
+        modalBg.style.display = "flex";
     }
 
     function closeModal() {
-        document.getElementById("modalBg").style.display = "none";
+        modalBg.style.display = "none";
     }
 
     function unlock() {
-        const pwd = document.getElementById("passwordInput").value;
-        if (pwd === "8542") {
-            document.getElementById("adminPanel").style.display = "block";
+        if (passwordInput.value === "8542") {
+            adminPanel.style.display = "block";
             closeModal();
             alert("Logged in successfully");
-            updatePieChart();
         } else {
             alert("Incorrect password");
         }
@@ -295,7 +278,7 @@
 
     function adjustTotal(n) {
         totalBooks = Math.max(0, totalBooks + n);
-        document.getElementById("totalCount").innerText = totalBooks;
+        totalCount.innerText = totalBooks;
         launchConfetti();
     }
 
@@ -376,6 +359,19 @@
                 }
             }
         });
+    }
+
+    updatePieChart(); // show chart even when logged out
+
+    function changeBackground() {
+        const color = bgColorPicker.value;
+        document.documentElement.style.setProperty("--bg-solid", color);
+        document.documentElement.style.setProperty("--bg-gradient", "none");
+    }
+
+    function resetBackground() {
+        document.documentElement.style.setProperty("--bg-solid", "none");
+        document.documentElement.style.setProperty("--bg-gradient", "linear-gradient(135deg, #ff7aa2, #b5688f)");
     }
 
     function launchConfetti() {
